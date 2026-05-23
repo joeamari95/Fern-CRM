@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCollection, readCollection, caseKey } from "@/lib/store/local";
 import { callClaudeMessages } from "@/lib/claude";
 import MicButton from "@/components/MicButton";
+import { legalSearch, OpenAIError } from "@/lib/openai";
 import { fmtDate, daysFromToday, relativeDue } from "@/lib/format";
 import type {
   Case,
@@ -198,6 +199,28 @@ export default function FloatingSoundingBoard() {
   const [flagDismissed, setFlagDismissed] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
+  // Quick Research tab state
+  const [tab, setTab] = useState<"board" | "research">("board");
+  const [rQuery, setRQuery] = useState("");
+  const [rResult, setRResult] = useState("");
+  const [rLoading, setRLoading] = useState(false);
+  const [rError, setRError] = useState("");
+
+  async function runSearch() {
+    const q = rQuery.trim();
+    if (!q || rLoading) return;
+    setRLoading(true);
+    setRError("");
+    setRResult("");
+    try {
+      setRResult(await legalSearch(q));
+    } catch (e) {
+      setRError(e instanceof OpenAIError ? e.message : "Could not complete request. Please try again.");
+    } finally {
+      setRLoading(false);
+    }
+  }
+
   const taRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -334,6 +357,18 @@ export default function FloatingSoundingBoard() {
           </button>
         </div>
 
+        {/* Tab switcher */}
+        <div className="sb-tabs">
+          <button className={`sb-tab${tab === "board" ? " active" : ""}`} onClick={() => setTab("board")}>
+            Sounding Board
+          </button>
+          <button className={`sb-tab${tab === "research" ? " active" : ""}`} onClick={() => setTab("research")}>
+            Quick Research
+          </button>
+        </div>
+
+        {tab === "board" && (
+          <>
         {/* Case selector — only when not inside a case page */}
         {!urlCaseId && (
           <div className="px-4 py-3 border-b hairline">
@@ -451,6 +486,62 @@ export default function FloatingSoundingBoard() {
             Grounded in case data only. Cites sources. Not legal advice.
           </div>
         </div>
+          </>
+        )}
+
+        {tab === "research" && (
+          <>
+            <div className="px-4 py-3 border-b hairline">
+              <div className="flex items-end gap-2">
+                <textarea
+                  className="input"
+                  rows={2}
+                  style={{ resize: "none" }}
+                  placeholder="e.g. Standard for constructive notice in NY premises liability slip and fall"
+                  value={rQuery}
+                  onChange={(e) => setRQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      runSearch();
+                    }
+                  }}
+                />
+                <button className="btn btn-accent" onClick={runSearch} disabled={rLoading || !rQuery.trim()}>
+                  {rLoading ? "…" : "Search"}
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              {!rResult && !rLoading && !rError && (
+                <p className="text-[12.5px] text-[var(--faint)]">
+                  Ask a legal question in plain English. Searches public sources (CourtListener,
+                  Justia, Cornell LII, NY Courts, Google Scholar).
+                </p>
+              )}
+              {rLoading && <p className="text-[13px] text-[var(--muted)]">Searching public legal sources…</p>}
+              {rError && <p className="text-[13px] text-[var(--rose)]">{rError}</p>}
+              {rResult && (
+                <div className="text-[13px] leading-relaxed">
+                  {rResult.split("\n").map((line, j) => {
+                    const isHeader = /^(ANSWER|RELEVANT CASES|NEXT STEP):/i.test(line.trim());
+                    return isHeader ? (
+                      <div key={j} className="text-[11px] uppercase tracking-wide text-[var(--blue)] mt-3 first:mt-0">
+                        {line}
+                      </div>
+                    ) : (
+                      <div key={j} className="whitespace-pre-wrap text-[var(--muted)]">{line || " "}</div>
+                    );
+                  })}
+                  <div className="text-[10.5px] text-[var(--faint)] mt-4 pt-3 border-t hairline">
+                    Verify all citations in Westlaw or LexisNexis before relying on them in any filing
+                    or advice.
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </aside>
     </>
   );
