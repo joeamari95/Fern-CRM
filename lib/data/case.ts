@@ -5,7 +5,7 @@ export const activeCase: CaseFile = {
   id: "doe-v-acme",
   caption: "Margaret Doe v. Acme Property Holdings LLC",
   shortName: "Doe v. Acme",
-  index: "152431/2025",
+  index: "720202/2025",
   court: "Supreme Court of the State of New York",
   county: "New York County",
   justice: "Hon. Eleanor Vance, J.S.C.",
