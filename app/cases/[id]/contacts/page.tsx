@@ -1,35 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import Header from "@/components/Header";
+import { useParams } from "next/navigation";
+import CaseHeader from "@/components/CaseHeader";
 import { Card, SectionHeader, Tag } from "@/components/ui";
-import {
-  Modal,
-  EntryForm,
-  RowActions,
-  AddButton,
-  EmptyState,
-  type Field,
-} from "@/components/forms";
-import { useCollection, newId } from "@/lib/store/local";
+import { Modal, EntryForm, RowActions, AddButton, EmptyState, type Field } from "@/components/forms";
+import { useCollection, caseKey, newId } from "@/lib/store/local";
 import type { Contact } from "@/lib/types";
 
 const FIELDS: Field[] = [
   { name: "partyName", label: "Party Name", kind: "text", required: true, placeholder: "e.g. Margaret Doe" },
-  {
-    name: "role",
-    label: "Role",
-    kind: "select",
-    options: [
-      "Plaintiff",
-      "Defendant",
-      "Our Client",
-      "Witness",
-      "Expert",
-      "Third Party",
-      "Business",
-    ].map((r) => ({ value: r, label: r })),
-  },
+  { name: "role", label: "Role", kind: "select", options: ["Plaintiff", "Defendant", "Our Client", "Witness", "Expert", "Third Party", "Business"].map((r) => ({ value: r, label: r })) },
   { name: "firm", label: "Firm", kind: "text", placeholder: "Law firm or company" },
   { name: "attorney", label: "Attorney / Contact", kind: "text", placeholder: "Primary contact" },
   { name: "email", label: "Email", kind: "text", placeholder: "name@example.com" },
@@ -47,7 +28,8 @@ function Field2({ label, value }: { label: string; value?: string }) {
 }
 
 export default function ContactsPage() {
-  const { items, add, update, remove, ready } = useCollection<Contact>("contacts");
+  const { id } = useParams<{ id: string }>();
+  const { items, add, update, remove, ready } = useCollection<Contact>(caseKey(id, "contacts"));
   const [editing, setEditing] = useState<Contact | "new" | null>(null);
 
   function save(v: Record<string, string>) {
@@ -58,21 +40,14 @@ export default function ContactsPage() {
 
   return (
     <>
-      <Header title="Parties & Contacts" />
+      <CaseHeader caseId={id} title="Parties & Contacts" />
       <div className="flex items-center justify-between -mt-3 mb-5 gap-3">
-        <p className="text-[13px] text-[var(--muted)]">
-          Every party, witness, business, and law firm of record — in one place.
-        </p>
+        <p className="text-[13px] text-[var(--muted)]">Every party, witness, business, and law firm of record.</p>
         <AddButton onClick={() => setEditing("new")} label="Add contact" />
       </div>
 
       {!ready ? null : items.length === 0 ? (
-        <EmptyState
-          title="No contacts yet"
-          hint="Add parties, opposing counsel, witnesses, experts, and businesses."
-          onAdd={() => setEditing("new")}
-          addLabel="Add your first contact"
-        />
+        <EmptyState title="No contacts yet" hint="Add parties, opposing counsel, witnesses, experts, and businesses." onAdd={() => setEditing("new")} addLabel="Add your first contact" />
       ) : (
         <div className="grid lg:grid-cols-2 gap-5">
           {items.map((p) => (
@@ -80,11 +55,7 @@ export default function ContactsPage() {
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div>
                   <h2 className="text-[15px] font-semibold">{p.partyName}</h2>
-                  {p.role && (
-                    <div className="mt-1">
-                      <Tag>{p.role}</Tag>
-                    </div>
-                  )}
+                  {p.role && <div className="mt-1"><Tag>{p.role}</Tag></div>}
                 </div>
                 <RowActions onEdit={() => setEditing(p)} onDelete={() => remove(p.id)} />
               </div>
@@ -100,16 +71,8 @@ export default function ContactsPage() {
       )}
 
       {editing && (
-        <Modal
-          title={editing === "new" ? "Add contact" : "Edit contact"}
-          onClose={() => setEditing(null)}
-        >
-          <EntryForm
-            fields={FIELDS}
-            initial={editing === "new" ? undefined : (editing as unknown as Record<string, string>)}
-            onSubmit={save}
-            onCancel={() => setEditing(null)}
-          />
+        <Modal title={editing === "new" ? "Add contact" : "Edit contact"} onClose={() => setEditing(null)}>
+          <EntryForm fields={FIELDS} initial={editing === "new" ? undefined : (editing as unknown as Record<string, string>)} onSubmit={save} onCancel={() => setEditing(null)} />
         </Modal>
       )}
     </>

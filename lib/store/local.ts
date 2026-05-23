@@ -2,11 +2,27 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-export const PREFIX = "fern:";
+export const PREFIX = "finn:";
 
 export function newId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+// Storage key for a per-case section, e.g. caseKey("abc", "deadlines").
+export function caseKey(caseId: string, section: string): string {
+  return `case:${caseId}:${section}`;
+}
+
+// Synchronous, non-hook read — used for cross-case aggregation on the dashboard.
+export function readCollection<T>(key: string): T[] {
+  if (typeof localStorage === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(PREFIX + key);
+    return raw ? (JSON.parse(raw) as T[]) : [];
+  } catch {
+    return [];
+  }
 }
 
 // A persisted array of records. Renders empty until `ready` so server and first
@@ -17,11 +33,12 @@ export function useCollection<T extends { id: string }>(key: string) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    setReady(false);
     try {
       const raw = localStorage.getItem(storageKey);
-      if (raw) setItems(JSON.parse(raw));
+      setItems(raw ? JSON.parse(raw) : []);
     } catch {
-      /* ignore corrupt data */
+      setItems([]);
     }
     setReady(true);
   }, [storageKey]);
@@ -49,7 +66,7 @@ export function useCollection<T extends { id: string }>(key: string) {
   return { items, add, update, remove, ready };
 }
 
-// A single persisted object (e.g. the case profile). `value` is null when unset.
+// A single persisted object. `value` is null when unset.
 export function useLocalObject<T>(key: string) {
   const storageKey = PREFIX + key;
   const [value, setValueState] = useState<T | null>(null);

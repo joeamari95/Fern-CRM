@@ -1,3 +1,5 @@
+import type { Accent } from "@/lib/types";
+
 export const TODAY = new Date();
 
 export function fmtDate(iso: string): string {
@@ -32,4 +34,25 @@ export function relativeDue(iso: string): string {
   if (n === -1) return "yesterday";
   if (n < 0) return `${-n}d overdue`;
   return `in ${n}d`;
+}
+
+// "X days ago" for a past date.
+export function ago(iso: string): string {
+  const n = daysFromToday(iso);
+  if (isNaN(n)) return "";
+  const d = -n;
+  if (d <= 0) return "today";
+  if (d === 1) return "1 day ago";
+  return `${d} days ago`;
+}
+
+// Urgency color for a due date: red overdue, orange <=3d, yellow this week, else calm.
+export function dueAccent(iso: string, done = false): Accent {
+  if (done) return "green";
+  const n = daysFromToday(iso);
+  if (isNaN(n)) return "muted";
+  if (n < 0) return "rose";
+  if (n <= 3) return "peach";
+  if (n <= 7) return "amber";
+  return "teal";
 }

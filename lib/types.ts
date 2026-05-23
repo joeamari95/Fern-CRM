@@ -1,4 +1,43 @@
-// Entry shapes for the live (localStorage-backed) app. Each entry has an `id`.
+// Domain types for Finn — Case Management.
+
+export type Accent = "blue" | "teal" | "rose" | "amber" | "peach" | "green" | "muted";
+
+export type Stage =
+  | "Pleadings"
+  | "Discovery"
+  | "Motion Practice"
+  | "Trial Prep"
+  | "Settlement"
+  | "Closed";
+
+export const STAGES: Stage[] = [
+  "Pleadings",
+  "Discovery",
+  "Motion Practice",
+  "Trial Prep",
+  "Settlement",
+  "Closed",
+];
+
+// Case metadata (global `finn:cases` collection).
+export type Case = {
+  id: string;
+  name: string;
+  index: string;
+  court: string;
+  county: string;
+  justice: string;
+  stage: Stage;
+  opposingCounsel: string;
+  supervisingPartner: string;
+  role: string; // Finn's role on the matter
+  weRepresent: string;
+  nextStep: string;
+  lastAction: string;
+  lastTouched: string; // ISO date
+  notes: string[]; // up to 3 short bullets
+  summary: string;
+};
 
 export type DeadlineType = "US" | "Joint" | "Court";
 export type DeadlineStatus = "upcoming" | "due-soon" | "overdue" | "done";
@@ -8,6 +47,8 @@ export type Deadline = {
   description: string;
   type: DeadlineType;
   status: DeadlineStatus;
+  assignedBy: string; // supervising partner
+  hard: boolean; // court-ordered / CPLR deadline
 };
 
 export type DiscoveryDirection = "outgoing" | "incoming";
@@ -66,19 +107,15 @@ export type ReportEntry = {
   body: string;
 };
 
-export type CaseProfile = {
-  caption: string;
-  index: string;
-  court: string;
-  county: string;
-  justice: string;
-  type: string;
-  weRepresent: string;
-  status: string;
-  summary: string;
+// Items Finn has submitted to a partner, awaiting feedback (global `finn:reviews`).
+export type Review = {
+  id: string;
+  caseId: string;
+  document: string;
+  submittedTo: string; // partner
+  submittedDate: string; // ISO date
 };
 
-// File attachment metadata (the blob itself lives in IndexedDB, keyed by `id`).
 export type Attachment = {
   id: string;
   name: string;
@@ -87,4 +124,12 @@ export type Attachment = {
   addedAt: string;
 };
 
-export type Accent = "blue" | "teal" | "rose" | "amber" | "peach" | "green" | "muted";
+export const CASE_SECTIONS = [
+  "deadlines",
+  "discovery",
+  "correspondence",
+  "docket",
+  "contacts",
+  "reports",
+] as const;
+export type CaseSection = (typeof CASE_SECTIONS)[number];

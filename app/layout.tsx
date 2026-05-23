@@ -7,8 +7,8 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Fern — Case Management",
-  description: "Litigation case management for Fern, Wilson Elser.",
+  title: "Finn — Case Management",
+  description: "Litigation case management for Finn O'Connell, Wilson Elser.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

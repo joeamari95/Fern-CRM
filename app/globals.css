@@ -95,6 +95,7 @@ body {
 .pill-rose  { color: var(--rose);  background: rgba(244, 63, 94, 0.1);   border: 1px solid rgba(244, 63, 94, 0.28); }
 .pill-amber { color: var(--amber); background: rgba(251, 191, 36, 0.1);  border: 1px solid rgba(251, 191, 36, 0.28); }
 .pill-green { color: var(--green); background: rgba(74, 222, 128, 0.1);  border: 1px solid rgba(74, 222, 128, 0.25); }
+.pill-peach { color: var(--peach); background: rgba(255, 170, 140, 0.1); border: 1px solid rgba(255, 170, 140, 0.28); }
 .pill-muted { color: var(--muted); background: var(--surface-2);          border: 1px solid var(--border); }
 
 /* ---- glow status dots ---- */
@@ -104,6 +105,7 @@ body {
 .dot-blue  { background: var(--blue);  box-shadow: 0 0 5px var(--blue),  0 0 12px rgba(122, 168, 255, 0.6); }
 .dot-teal  { background: var(--teal);  box-shadow: 0 0 5px var(--teal),  0 0 12px rgba(51, 221, 200, 0.6); }
 .dot-green { background: var(--green); box-shadow: 0 0 5px var(--green), 0 0 12px rgba(74, 222, 128, 0.6); }
+.dot-peach { background: var(--peach); box-shadow: 0 0 5px var(--peach), 0 0 12px rgba(255, 170, 140, 0.6); }
 .dot-muted { background: rgba(255, 255, 255, 0.35); }
 
 /* ---- left accent bar for list rows ---- */
@@ -256,6 +258,21 @@ select.input { appearance: none; cursor: pointer; }
   cursor: pointer;
 }
 .attachment-name:hover { text-decoration: underline; }
+
+/* ---- notes hover popover (case list) ---- */
+.notes-cell { position: relative; }
+.notes-pop {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  width: 280px;
+  padding: 10px 12px;
+  margin-top: 4px;
+  display: none;
+  box-shadow: var(--inset), 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.notes-cell:hover .notes-pop { display: block; }
 
 /* scrollbars */
 * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; }
