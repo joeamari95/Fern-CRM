@@ -238,6 +238,13 @@ export default function FloatingSoundingBoard() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, loading, open]);
 
+  // Focus the input once the panel has slid in.
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(() => taRef.current?.focus(), 360);
+    return () => clearTimeout(t);
+  }, [open]);
+
   function grow() {
     const ta = taRef.current;
     if (!ta) return;
