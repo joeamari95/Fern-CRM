@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Card, SectionHeader, Pill, Dot } from "@/components/ui";
 import { EmptyState } from "@/components/forms";
+import { InlineText, InlineDate } from "@/components/InlineEdit";
 import SeedControls from "@/components/SeedControls";
 import { useCollection, readCollection, caseKey } from "@/lib/store/local";
 import { TODAY, fmtDate, relativeDue, ago, daysFromToday, dueAccent } from "@/lib/format";
@@ -12,9 +13,14 @@ import type { Accent, Case, Deadline, Review } from "@/lib/types";
 type AggDeadline = Deadline & { caseId: string; caseName: string };
 
 export default function AssociateDashboard() {
-  const { items: cases, ready } = useCollection<Case>("cases");
+  const casesCol = useCollection<Case>("cases");
+  const { items: cases, ready } = casesCol;
   const reviews = useCollection<Review>("reviews");
   const [deadlines, setDeadlines] = useState<AggDeadline[]>([]);
+
+  // CRM-style inline save from the dashboard; bumps lastTouched.
+  const saveCase = (cid: string, patch: Partial<Case>) =>
+    casesCol.update(cid, { ...patch, lastTouched: new Date().toISOString().slice(0, 10) });
 
   // Aggregate every case's deadlines (cross-case read from localStorage).
   useEffect(() => {
@@ -229,7 +235,7 @@ export default function AssociateDashboard() {
                 <th className="py-2 pr-3">Partner</th>
                 <th className="py-2 pr-3">Stage</th>
                 <th className="py-2 pr-3">Next Hard Deadline</th>
-                <th className="py-2 pr-3">Last Action</th>
+                <th className="py-2 pr-3">Next Step</th>
                 <th className="py-2 pr-3">My Role</th>
               </tr>
             </thead>
@@ -261,7 +267,16 @@ export default function AssociateDashboard() {
                         "—"
                       )}
                     </td>
-                    <td className="py-2.5 pr-3 text-[var(--muted)]">{c.lastAction}</td>
+                    <td className="py-2.5 pr-3 text-[var(--muted)] max-w-[260px]">
+                      <InlineText
+                        value={c.nextStep}
+                        placeholder="Add next step"
+                        onSave={(v) => saveCase(c.id, { nextStep: v })}
+                      />
+                      <div className="text-[11px] mt-0.5">
+                        <InlineDate value={c.nextStepDate} onSave={(v) => saveCase(c.id, { nextStepDate: v })} />
+                      </div>
+                    </td>
                     <td className="py-2.5 pr-3 text-[var(--muted)]">{c.role}</td>
                   </tr>
                 );

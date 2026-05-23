@@ -95,6 +95,7 @@ export default function CaseListPage() {
         role: v.role,
         weRepresent: v.weRepresent,
         nextStep: "",
+        nextStepDate: "",
         lastAction: "Matter opened",
         lastTouched: new Date().toISOString().slice(0, 10),
         notes: [],

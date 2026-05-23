@@ -20,6 +20,7 @@ const FIELDS: Field[] = [
   { name: "supervisingPartner", label: "Supervising Partner", kind: "text" },
   { name: "role", label: "My Role", kind: "text" },
   { name: "nextStep", label: "Next Step", kind: "text" },
+  { name: "nextStepDate", label: "Next Step Date", kind: "date" },
   { name: "lastAction", label: "Last Action Taken", kind: "text" },
   { name: "notes", label: "Notes (one per line)", kind: "textarea", placeholder: "One short bullet per line" },
   { name: "summary", label: "Summary", kind: "textarea" },

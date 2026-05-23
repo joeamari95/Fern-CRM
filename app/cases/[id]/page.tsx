@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import CaseHeader from "@/components/CaseHeader";
 import { Card, SectionHeader, Pill, Dot } from "@/components/ui";
+import { InlineText, InlineDate } from "@/components/InlineEdit";
 import { useCollection, caseKey } from "@/lib/store/local";
 import { fmtDay, relativeDue, daysFromToday, dueAccent } from "@/lib/format";
 import type { Accent, Case, Correspondence, Deadline, DiscoveryItem, DocketEntry } from "@/lib/types";
@@ -12,6 +13,10 @@ export default function CaseDashboard() {
   const { id } = useParams<{ id: string }>();
   const cases = useCollection<Case>("cases");
   const c = cases.items.find((x) => x.id === id);
+
+  // CRM-style inline save: persists the field and bumps lastTouched immediately.
+  const saveCase = (patch: Partial<Case>) =>
+    cases.update(id, { ...patch, lastTouched: new Date().toISOString().slice(0, 10) });
 
   const deadlines = useCollection<Deadline>(caseKey(id, "deadlines"));
   const discovery = useCollection<DiscoveryItem>(caseKey(id, "discovery"));
@@ -59,7 +64,16 @@ export default function CaseDashboard() {
             </div>
             <div className="min-w-0 max-w-[340px]">
               <div className="text-[12px] text-[var(--faint)]">Next Step</div>
-              <div className="text-[14px] font-medium">{c.nextStep || "—"}</div>
+              <div className="text-[14px] font-medium">
+                <InlineText
+                  value={c.nextStep}
+                  placeholder="Add next step"
+                  onSave={(v) => saveCase({ nextStep: v })}
+                />
+              </div>
+              <div className="text-[12px] text-[var(--muted)] mt-1">
+                <InlineDate value={c.nextStepDate} onSave={(v) => saveCase({ nextStepDate: v })} />
+              </div>
             </div>
             <button
               className="btn btn-accent self-center"

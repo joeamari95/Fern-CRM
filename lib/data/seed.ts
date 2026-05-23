@@ -171,6 +171,7 @@ function mkCase(slug: string, name: string, m: Mk): Case {
     role: m.role,
     weRepresent: m.represent,
     nextStep: m.nextStep,
+    nextStepDate: off(m.hardDays + 18),
     lastAction: m.lastAction,
     lastTouched: off(-Math.floor(Math.random() * 9)),
     notes: m.notes,
@@ -192,6 +193,7 @@ export const SEED_CASES: Case[] = [
     role: "Drafting discovery responses",
     weRepresent: "Defendant — The Long Island Railroad Company",
     nextStep: "Serve responses to plaintiff's first document demand",
+    nextStepDate: off(5),
     lastAction: "Circulated draft discovery responses to M. Harrington",
     lastTouched: off(-1),
     notes: [

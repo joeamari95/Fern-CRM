@@ -33,6 +33,7 @@ export type Case = {
   role: string; // Finn's role on the matter
   weRepresent: string;
   nextStep: string;
+  nextStepDate: string; // ISO date for the next step (CRM-style, editable)
   lastAction: string;
   lastTouched: string; // ISO date
   notes: string[]; // up to 3 short bullets
