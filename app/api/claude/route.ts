@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 
 // Server-side proxy so the API key never reaches the browser bundle.
 // Key is read from REACT_APP_ANTHROPIC_KEY (the configured name) with a fallback.
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "claude-sonnet-4-5";
 
 export async function POST(req: Request) {
   const apiKey = process.env.REACT_APP_ANTHROPIC_KEY || process.env.ANTHROPIC_API_KEY;
