@@ -108,14 +108,48 @@ type Mk = {
 };
 
 function mkCase(slug: string, name: string, m: Mk): Case {
+  const plaintiff = name.split(" v. ")[0];
+  const client = m.represent.replace(/^Defendant — /, "");
+  // Light, "basic" sub-data so every section of a case 2-11 dashboard is populated
+  // without matching Palsgraf's full build-out.
   PER_CASE[slug] = {
     deadlines: [
       { date: off(m.hardDays), description: m.hardDesc, type: m.stage === "Pleadings" ? "US" : "Court", status: m.hardDays <= 3 ? "due-soon" : "upcoming", assignedBy: m.partner, hard: true },
       { date: off(m.hardDays + 18), description: m.nextStep, type: "US", status: "upcoming", assignedBy: m.partner, hard: false },
     ],
+    discovery: [
+      {
+        name: m.nextStep,
+        type: m.stage === "Pleadings" ? "Disclosure" : "Document Demand",
+        direction: m.role.toLowerCase().includes("respond") || m.role.toLowerCase().includes("opposing") ? "incoming" : "outgoing",
+        dueDate: off(m.hardDays),
+        status: m.hardDays <= 3 ? "to-serve" : "to-draft",
+        notes: m.notes[0] ?? "",
+      },
+    ],
+    correspondence: [
+      { date: off(-2), type: "Email", from: `Counsel, ${m.opposingCounsel}`, to: "Finn O'Connell", summary: `Inquires about the status of ${m.nextStep.toLowerCase()}.` },
+      { date: off(-5), type: "Email", from: `${m.partner} (Partner)`, to: "Finn O'Connell", summary: `Assigned you to ${m.role.toLowerCase()}. ${m.notes[0] ?? ""}` },
+    ],
+    docket: [
+      { filingNumber: "NYSCEF 1", name: "Summons + Verified Complaint", party: "Plaintiff", date: off(-120), notes: "Action commenced; premises liability / negligence." },
+      m.stage === "Pleadings"
+        ? { filingNumber: "NYSCEF 2", name: "RJI", party: "Plaintiff", date: off(-30), notes: "Request for Judicial Intervention filed." }
+        : { filingNumber: "NYSCEF 2", name: "Verified Answer", party: "Defendant", date: off(-90), notes: "Answer with affirmative defenses." },
+    ],
     contacts: [
-      { partyName: name.split(" v. ")[0], role: "Plaintiff", firm: m.opposingCounsel, attorney: "Lead counsel", email: "", phone: "" },
-      { partyName: m.represent.replace(/^Defendant — /, ""), role: "Our Client", firm: "—", attorney: "Claims contact", email: "", phone: "" },
+      { partyName: plaintiff, role: "Plaintiff", firm: m.opposingCounsel, attorney: "Lead counsel", email: "", phone: "" },
+      { partyName: client, role: "Our Client", firm: "—", attorney: "Claims contact", email: "", phone: "" },
+    ],
+    reports: [
+      {
+        date: off(-6),
+        label: "Initial Report",
+        status: "current",
+        body:
+          `STATUS: ${m.stage}. ${m.summary}\n\n` +
+          `NEXT STEPS: ${m.nextStep}. Supervising partner: ${m.partner}; assigned role: ${m.role}.`,
+      },
     ],
   };
   return {
