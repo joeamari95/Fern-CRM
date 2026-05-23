@@ -23,7 +23,6 @@ function caseNav(id: string) {
     { href: `${base}/correspondence`, label: "Correspondence", icon: "✉" },
     { href: `${base}/court`, label: "Court Tracking", icon: "§" },
     { href: `${base}/reports`, label: "Reports", icon: "❏" },
-    { href: `${base}/sounding-board`, label: "Sounding Board", icon: "✦" },
   ];
 }
 

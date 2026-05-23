@@ -61,9 +61,12 @@ export default function CaseDashboard() {
               <div className="text-[12px] text-[var(--faint)]">Next Step</div>
               <div className="text-[14px] font-medium">{c.nextStep || "—"}</div>
             </div>
-            <Link href={`/cases/${id}/sounding-board`} className="btn btn-accent self-center">
-              ✦ Sounding Board
-            </Link>
+            <button
+              className="btn btn-accent self-center"
+              onClick={() => window.dispatchEvent(new Event("finn:open-sb"))}
+            >
+              § Sounding Board
+            </button>
           </div>
         </Card>
       )}
