@@ -324,6 +324,7 @@ select.input { appearance: none; cursor: pointer; }
   padding: 7vh 16px 16px;
   overflow-y: auto;
 }
+.modal-panel.modal-wide { max-width: 760px; }
 .modal-panel {
   width: 100%;
   max-width: 460px;

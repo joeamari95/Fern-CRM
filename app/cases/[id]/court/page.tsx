@@ -5,8 +5,10 @@ import { useParams } from "next/navigation";
 import CaseHeader from "@/components/CaseHeader";
 import { Card, SectionHeader, Tag } from "@/components/ui";
 import { Modal, EntryForm, RowActions, AddButton, EmptyState, Attachments, type Field } from "@/components/forms";
+import DocIngest from "@/components/DocIngest";
 import { useCollection, caseKey, newId } from "@/lib/store/local";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, toISODate } from "@/lib/format";
+import type { DocExtraction } from "@/lib/openai";
 import type { DocketEntry } from "@/lib/types";
 
 const FIELDS: Field[] = [
@@ -21,6 +23,15 @@ export default function CourtPage() {
   const { id } = useParams<{ id: string }>();
   const { items, add, update, remove, ready } = useCollection<DocketEntry>(caseKey(id, "docket"));
   const [editing, setEditing] = useState<DocketEntry | "new" | null>(null);
+  const [prefill, setPrefill] = useState<Record<string, string> | undefined>(undefined);
+  const txt = (v?: string[] | string) => (Array.isArray(v) ? v.join("; ") : v || "");
+  const mapToFields = (d: DocExtraction): Record<string, string> => ({
+    filingNumber: "",
+    name: d.document_type || "",
+    party: txt(d.parties),
+    date: toISODate(txt(d.document_date)),
+    notes: txt(d.deadlines) || txt(d.action_items) || "",
+  });
   const sorted = [...items].sort((a, b) => (a.date < b.date ? 1 : -1));
 
   function save(v: Record<string, string>) {
@@ -37,9 +48,18 @@ export default function CourtPage() {
         <span className="text-[12.5px] text-[var(--muted)]">Log NYSCEF / e-Courts docket entries as they post. Live auto-sync is a future addition.</span>
       </div>
       <Card>
-        <SectionHeader title="Docket — NYSCEF" sub="Filings and court activity" right={<AddButton onClick={() => setEditing("new")} label="Add filing" />} />
+        <SectionHeader
+          title="Docket — NYSCEF"
+          sub="Filings and court activity"
+          right={
+            <div className="flex items-center gap-2">
+              <DocIngest mapToFields={mapToFields} onApply={(p) => { setPrefill(p); setEditing("new"); }} />
+              <AddButton onClick={() => { setPrefill(undefined); setEditing("new"); }} label="Add filing" />
+            </div>
+          }
+        />
         {!ready ? null : sorted.length === 0 ? (
-          <EmptyState title="No docket entries yet" hint="Record filings from NYSCEF / e-Courts so the full docket lives in one place." onAdd={() => setEditing("new")} addLabel="Add your first filing" />
+          <EmptyState title="No docket entries yet" hint="Record filings from NYSCEF / e-Courts so the full docket lives in one place." onAdd={() => { setPrefill(undefined); setEditing("new"); }} addLabel="Add your first filing" />
         ) : (
           <div className="flex flex-col">
             {sorted.map((d) => (
@@ -65,7 +85,7 @@ export default function CourtPage() {
 
       {editing && (
         <Modal title={editing === "new" ? "Add filing" : "Edit filing"} onClose={() => setEditing(null)}>
-          <EntryForm fields={FIELDS} initial={editing === "new" ? undefined : (editing as unknown as Record<string, string>)} onSubmit={save} onCancel={() => setEditing(null)} />
+          <EntryForm fields={FIELDS} initial={editing === "new" ? prefill : (editing as unknown as Record<string, string>)} onSubmit={save} onCancel={() => setEditing(null)} />
         </Modal>
       )}
     </>

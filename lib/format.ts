@@ -46,6 +46,13 @@ export function ago(iso: string): string {
   return `${d} days ago`;
 }
 
+// Best-effort parse of a free-text date into yyyy-mm-dd; "" if unparseable.
+export function toISODate(s: string): string {
+  if (!s) return "";
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+}
+
 // Urgency color for a due date: red overdue, orange <=3d, yellow this week, else calm.
 export function dueAccent(iso: string, done = false): Accent {
   if (done) return "green";

@@ -5,8 +5,10 @@ import { useParams } from "next/navigation";
 import CaseHeader from "@/components/CaseHeader";
 import { Card, SectionHeader, Pill, Dot, Tag } from "@/components/ui";
 import { Modal, EntryForm, RowActions, AddButton, EmptyState, Attachments, type Field } from "@/components/forms";
+import DocIngest from "@/components/DocIngest";
 import { useCollection, caseKey, newId } from "@/lib/store/local";
-import { fmtDate, relativeDue, daysFromToday } from "@/lib/format";
+import { fmtDate, relativeDue, daysFromToday, toISODate } from "@/lib/format";
+import type { DocExtraction } from "@/lib/openai";
 import type { Accent, Deadline, DeadlineStatus } from "@/lib/types";
 
 const FIELDS: Field[] = [
@@ -25,6 +27,16 @@ export default function DeadlinesPage() {
   const { id } = useParams<{ id: string }>();
   const { items, add, update, remove, ready } = useCollection<Deadline>(caseKey(id, "deadlines"));
   const [editing, setEditing] = useState<Deadline | "new" | null>(null);
+  const [prefill, setPrefill] = useState<Record<string, string> | undefined>(undefined);
+  const txt = (v?: string[] | string) => (Array.isArray(v) ? v.join("; ") : v || "");
+  const mapToFields = (d: DocExtraction): Record<string, string> => ({
+    date: toISODate(txt(d.document_date)),
+    description: txt(d.deadlines) || d.document_type || "",
+    type: "Court",
+    status: "upcoming",
+    assignedBy: "",
+    hard: "yes",
+  });
 
   const sorted = [...items].sort((a, b) => {
     if (a.status === "done" && b.status !== "done") return 1;
@@ -49,9 +61,18 @@ export default function DeadlinesPage() {
     <>
       <CaseHeader caseId={id} title="Deadlines" />
       <Card>
-        <SectionHeader title="Case Calendar" sub="Court-ordered and CPLR deadlines" right={<AddButton onClick={() => setEditing("new")} label="Add deadline" />} />
+        <SectionHeader
+          title="Case Calendar"
+          sub="Court-ordered and CPLR deadlines"
+          right={
+            <div className="flex items-center gap-2">
+              <DocIngest mapToFields={mapToFields} onApply={(p) => { setPrefill(p); setEditing("new"); }} />
+              <AddButton onClick={() => { setPrefill(undefined); setEditing("new"); }} label="Add deadline" />
+            </div>
+          }
+        />
         {!ready ? null : sorted.length === 0 ? (
-          <EmptyState title="No deadlines yet" hint="Track court-ordered and CPLR deadlines so nothing slips." onAdd={() => setEditing("new")} addLabel="Add your first deadline" />
+          <EmptyState title="No deadlines yet" hint="Track court-ordered and CPLR deadlines so nothing slips." onAdd={() => { setPrefill(undefined); setEditing("new"); }} addLabel="Add your first deadline" />
         ) : (
           <div className="flex flex-col">
             {sorted.map((d) => {
@@ -87,7 +108,7 @@ export default function DeadlinesPage() {
 
       {editing && (
         <Modal title={editing === "new" ? "Add deadline" : "Edit deadline"} onClose={() => setEditing(null)}>
-          <EntryForm fields={FIELDS} initial={editing === "new" ? undefined : toForm(editing)} onSubmit={save} onCancel={() => setEditing(null)} />
+          <EntryForm fields={FIELDS} initial={editing === "new" ? prefill : toForm(editing)} onSubmit={save} onCancel={() => setEditing(null)} />
         </Modal>
       )}
     </>
