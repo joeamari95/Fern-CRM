@@ -1,6 +1,7 @@
 "use client";
 
 import { PREFIX, caseKey, newId } from "@/lib/store/local";
+import { colorForIndex, setCaseColors } from "@/lib/caseColors";
 import type {
   Case,
   Contact,
@@ -407,6 +408,10 @@ export const SEED_REVIEWS: Review[] = [
 export function seedAll() {
   localStorage.setItem(PREFIX + "cases", JSON.stringify(SEED_CASES));
   localStorage.setItem(PREFIX + "reviews", JSON.stringify(SEED_REVIEWS));
+  // Assign a consistent color to each case.
+  const colors: Record<string, string> = {};
+  SEED_CASES.forEach((c, i) => (colors[c.id] = colorForIndex(i)));
+  setCaseColors(colors);
   const sections: (keyof CaseData)[] = [
     "deadlines",
     "discovery",

@@ -6,6 +6,7 @@ import { Card, SectionHeader, Dot, Pill } from "@/components/ui";
 import { Modal, EntryForm, AddButton, EmptyState, RowActions, type Field } from "@/components/forms";
 import SeedControls from "@/components/SeedControls";
 import { useCollection, readCollection, caseKey, newId } from "@/lib/store/local";
+import { assignCaseColor } from "@/lib/caseColors";
 import { fmtDate, relativeDue, ago, daysFromToday, dueAccent } from "@/lib/format";
 import { STAGES, type Accent, type Case, type Deadline } from "@/lib/types";
 
@@ -79,8 +80,10 @@ export default function CaseListPage() {
 
   function save(v: Record<string, string>) {
     if (editing === "new") {
+      const id = newId();
+      assignCaseColor(id);
       add({
-        id: newId(),
+        id,
         name: v.name,
         index: v.index,
         court: v.court,
