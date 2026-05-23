@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCollection, readCollection, caseKey } from "@/lib/store/local";
 import { callClaudeMessages } from "@/lib/claude";
+import MicButton from "@/components/MicButton";
 import { fmtDate, daysFromToday, relativeDue } from "@/lib/format";
 import type {
   Case,
@@ -441,6 +442,7 @@ export default function FloatingSoundingBoard() {
                 }
               }}
             />
+            <MicButton onText={(t) => setInput((p) => (p ? `${p} ${t}` : t))} title="Dictate your question" />
             <button className="btn btn-accent" onClick={() => send(input)} disabled={loading || !input.trim()}>
               Send
             </button>

@@ -178,6 +178,61 @@ body {
 .icon-btn:hover { background: var(--surface-3); color: var(--fg); }
 .icon-btn-danger:hover { color: var(--rose); border-color: rgba(244, 63, 94, 0.4); }
 
+/* ---- mic / voice input ---- */
+.mic-btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.mic-btn:hover { background: var(--surface-3); color: var(--fg); }
+.mic-btn.recording {
+  color: var(--rose);
+  border-color: rgba(244, 63, 94, 0.5);
+  background: rgba(244, 63, 94, 0.1);
+}
+.mic-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--rose);
+}
+.mic-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--rose);
+  animation: mic-pulse 1s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
+.mic-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--blue);
+  animation: mic-spin 0.7s linear infinite;
+}
+@keyframes mic-spin { to { transform: rotate(360deg); } }
+.mic-error {
+  font-size: 11px;
+  color: var(--rose);
+  max-width: 220px;
+  line-height: 1.3;
+}
+
 /* ---- inline (CRM-style) edit ---- */
 .inline-edit {
   text-align: left;
@@ -438,11 +493,18 @@ select.input { appearance: none; cursor: pointer; }
   border: none;
   outline: none;
   resize: vertical;
-  min-height: 110px;
+  min-height: 90px;
   padding: 9px;
   font-size: 13px;
   color: var(--fg);
   font-family: inherit;
+}
+.sticky-note-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border-top: 1px solid rgba(251, 191, 36, 0.2);
 }
 
 .sb-overlay {

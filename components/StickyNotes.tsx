@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCollection, readCollection, caseKey, newId } from "@/lib/store/local";
 import { getCaseColor, NEUTRAL } from "@/lib/caseColors";
+import MicButton from "@/components/MicButton";
 import type { Case, Contact } from "@/lib/types";
 
 type Note = { id: string; text: string; x: number; y: number; caseId?: string; noSuggest?: boolean };
@@ -270,6 +271,14 @@ export default function StickyNotes() {
                 value={note.text}
                 onChange={(e) => update(note.id, { text: e.target.value })}
               />
+              <div className="sticky-note-foot">
+                <MicButton
+                  title="Dictate this note"
+                  onText={(t) =>
+                    update(note.id, { text: note.text ? `${note.text} ${t}` : t })
+                  }
+                />
+              </div>
             </div>
           );
         })}
