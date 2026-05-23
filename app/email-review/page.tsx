@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui";
 import { callClaude } from "@/lib/claude";
 
@@ -48,6 +48,18 @@ function splitOutput(text: string): { email: string; changes: string } {
 
 export default function EmailReviewPage() {
   const [draft, setDraft] = useState("");
+  // Prefill from a draft handed off by the Case Brain "Refine further" action.
+  useEffect(() => {
+    try {
+      const handoff = sessionStorage.getItem("finn:emaildraft");
+      if (handoff) {
+        setDraft(handoff);
+        sessionStorage.removeItem("finn:emaildraft");
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
   const [emailType, setEmailType] = useState(EMAIL_TYPES[0]);
   const [tone, setTone] = useState(TONES[1]);
   const [context, setContext] = useState("");

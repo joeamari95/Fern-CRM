@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import FloatingSoundingBoard from "@/components/FloatingSoundingBoard";
+import StickyNotes from "@/components/StickyNotes";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1 min-w-0 px-5 md:px-8 py-6 max-w-[1180px]">{children}</main>
         </div>
         <FloatingSoundingBoard />
+        <StickyNotes />
       </body>
     </html>
   );
