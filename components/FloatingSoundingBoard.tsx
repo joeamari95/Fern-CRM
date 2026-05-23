@@ -414,10 +414,25 @@ export default function FloatingSoundingBoard() {
           )}
 
           {messages.length === 0 && !loading && (
-            <p className="text-[12.5px] text-[var(--faint)] mt-1">
-              Ask about {activeCase ? "this case" : "any case"}: find a fact, get a brief, or draft
-              correspondence. Grounded in the case file.
-            </p>
+            <div className="text-[12.5px] text-[var(--muted)] mt-1 leading-relaxed">
+              <div className="font-medium text-[var(--fg)]">Sounding Board — your cases.</div>
+              <div className="text-[var(--faint)] mt-0.5">
+                Think out loud or pull a fact. It only uses your case file and cites where it found
+                things.
+              </div>
+              <ul className="list-disc pl-4 mt-2 flex flex-col gap-1">
+                <li>Find a fact: “What did the client say about the logs?”</li>
+                <li>Get a brief: hit ⚡ Brief Me before a partner check-in.</li>
+                <li>Draft: say “draft a reply to opposing counsel” and it writes one in attorney voice.</li>
+              </ul>
+              <div className="text-[var(--faint)] mt-2">
+                Need the law, not your matter?{" "}
+                <button className="text-[var(--blue)] hover:underline" onClick={() => setTab("research")}>
+                  Switch to Quick Research
+                </button>
+                .
+              </div>
+            </div>
           )}
 
           {messages.map((m, i) =>
@@ -514,10 +529,24 @@ export default function FloatingSoundingBoard() {
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-3">
               {!rResult && !rLoading && !rError && (
-                <p className="text-[12.5px] text-[var(--faint)]">
-                  Ask a legal question in plain English. Searches public sources (CourtListener,
-                  Justia, Cornell LII, NY Courts, Google Scholar).
-                </p>
+                <div className="text-[12.5px] text-[var(--muted)] leading-relaxed">
+                  <div className="font-medium text-[var(--fg)]">Quick Research — the law.</div>
+                  <div className="text-[var(--faint)] mt-0.5">
+                    Plain-English legal questions answered from the public web (case law, statutes).
+                    It does not see your case files.
+                  </div>
+                  <ul className="list-disc pl-4 mt-2 flex flex-col gap-1">
+                    <li>“Constructive notice standard for NY slip and fall.”</li>
+                    <li>“Can a NY owner delegate snow removal to a contractor?”</li>
+                  </ul>
+                  <div className="text-[var(--faint)] mt-2">
+                    Always verify cites in Westlaw or Lexis. For your matter,{" "}
+                    <button className="text-[var(--blue)] hover:underline" onClick={() => setTab("board")}>
+                      use Sounding Board
+                    </button>
+                    .
+                  </div>
+                </div>
               )}
               {rLoading && <p className="text-[13px] text-[var(--muted)]">Searching public legal sources…</p>}
               {rError && <p className="text-[13px] text-[var(--rose)]">{rError}</p>}
