@@ -1,44 +1,13 @@
-// Shared domain types for the Fern case manager.
-// v1 is single-case; every type carries the shape needed to scale to many cases later.
+// Entry shapes for the live (localStorage-backed) app. Each entry has an `id`.
 
-export type Accent = "blue" | "teal" | "rose" | "amber" | "peach" | "green" | "muted";
-
-export type Party = {
-  id: string;
-  name: string;
-  role:
-    | "Plaintiff"
-    | "Defendant"
-    | "Our Client"
-    | "Witness"
-    | "Expert"
-    | "Third Party"
-    | "Business";
-  side: "Plaintiff" | "Defense" | "Neutral";
-  description?: string;
-  firm?: LawFirm; // counsel of record, if any
-  email?: string;
-  phone?: string;
-  address?: string;
-};
-
-export type LawFirm = {
-  name: string;
-  represents: string; // e.g. "Plaintiff", "Defendant Acme"
-  attorneys: { name: string; email?: string; phone?: string }[];
-  address?: string;
-  phone?: string;
-};
-
+export type DeadlineType = "US" | "Joint" | "Court";
 export type DeadlineStatus = "upcoming" | "due-soon" | "overdue" | "done";
-
 export type Deadline = {
   id: string;
-  title: string;
-  date: string; // ISO yyyy-mm-dd
-  owner: "Us" | "Opposing" | "Court" | "Joint";
+  date: string;
+  description: string;
+  type: DeadlineType;
   status: DeadlineStatus;
-  note?: string;
 };
 
 export type DiscoveryDirection = "outgoing" | "incoming";
@@ -49,68 +18,72 @@ export type DiscoveryStatus =
   | "responses-due"
   | "received"
   | "complete";
-
 export type DiscoveryItem = {
   id: string;
-  title: string; // e.g. "Plaintiff's First Notice for Discovery & Inspection"
-  type: "Interrogatories" | "Document Demand" | "Deposition" | "Bill of Particulars" | "Subpoena" | "Disclosure";
-  direction: DiscoveryDirection; // outgoing = we serve; incoming = served on us
+  name: string;
+  type: string;
+  direction: DiscoveryDirection;
+  dueDate: string;
   status: DiscoveryStatus;
-  dueDate?: string;
-  note?: string;
 };
 
+export type CorrespondenceType = "Email" | "Letter" | "Call" | "Court";
 export type Correspondence = {
   id: string;
-  channel: "Email" | "Letter" | "Call" | "Court";
+  date: string;
+  type: CorrespondenceType;
   from: string;
   to: string;
-  date: string; // ISO datetime or date
-  subject: string;
   summary: string;
-  needsReply?: boolean;
-  accent?: Accent;
 };
 
 export type DocketEntry = {
   id: string;
-  docNo: number;
+  filingNumber: string;
+  name: string;
+  party: string;
   date: string;
-  type: string; // e.g. "Summons + Complaint", "Answer", "RJI"
-  filedBy: string;
-  summary: string;
+  notes: string;
 };
 
+export type Contact = {
+  id: string;
+  partyName: string;
+  role: string;
+  firm: string;
+  attorney: string;
+  email: string;
+  phone: string;
+};
+
+export type ReportStatus = "current" | "superseded";
 export type ReportEntry = {
   id: string;
   date: string;
-  label: string; // "Initial Report" | "Supplemental Report No. 1" ...
-  status: "current" | "superseded";
-  sections: { heading: string; body: string }[];
+  label: string;
+  status: ReportStatus;
+  body: string;
 };
 
-export type Task = {
-  id: string;
-  title: string;
-  detail: string;
-  priority: "critical" | "high" | "normal";
-  due?: string;
-  link?: string; // route to the relevant section
-};
-
-export type CaseFile = {
-  id: string;
+export type CaseProfile = {
   caption: string;
-  shortName: string;
-  index: string; // index/docket number
+  index: string;
   court: string;
   county: string;
   justice: string;
-  type: string; // cause of action
+  type: string;
   weRepresent: string;
-  filed: string;
   status: string;
-  rjiFiled?: boolean;
-  noteOfIssue?: string;
   summary: string;
 };
+
+// File attachment metadata (the blob itself lives in IndexedDB, keyed by `id`).
+export type Attachment = {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  addedAt: string;
+};
+
+export type Accent = "blue" | "teal" | "rose" | "amber" | "peach" | "green" | "muted";

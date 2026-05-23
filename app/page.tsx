@@ -1,142 +1,204 @@
+"use client";
+
 import Link from "next/link";
 import Header from "@/components/Header";
 import { Card, SectionHeader, Pill, Dot } from "@/components/ui";
-import { tasks } from "@/lib/data/tasks";
-import { deadlines } from "@/lib/data/deadlines";
-import { docket } from "@/lib/data/docket";
-import { correspondence } from "@/lib/data/correspondence";
-import { discovery } from "@/lib/data/discovery";
+import { EmptyState } from "@/components/forms";
+import { useCollection } from "@/lib/store/local";
 import { fmtDay, relativeDue, daysFromToday } from "@/lib/format";
-import type { Accent } from "@/lib/types";
-
-const priorityAccent: Record<string, Accent> = {
-  critical: "rose",
-  high: "amber",
-  normal: "blue",
-};
+import type {
+  Accent,
+  Correspondence,
+  Deadline,
+  DiscoveryItem,
+  DocketEntry,
+} from "@/lib/types";
 
 export default function Dashboard() {
-  const openTasks = tasks;
-  const criticalCount = tasks.filter((t) => t.priority === "critical").length;
+  const deadlines = useCollection<Deadline>("deadlines");
+  const discovery = useCollection<DiscoveryItem>("discovery");
+  const correspondence = useCollection<Correspondence>("correspondence");
+  const docket = useCollection<DocketEntry>("docket");
 
-  const upcoming = deadlines
-    .filter((d) => d.status !== "done")
-    .sort((a, b) => daysFromToday(a.date) - daysFromToday(b.date))
+  const ready =
+    deadlines.ready && discovery.ready && correspondence.ready && docket.ready;
+
+  const totalEntries =
+    deadlines.items.length +
+    discovery.items.length +
+    correspondence.items.length +
+    docket.items.length;
+
+  const openDeadlines = deadlines.items.filter((d) => d.status !== "done");
+  const upcoming = [...openDeadlines]
+    .sort((a, b) => {
+      const da = daysFromToday(a.date);
+      const db = daysFromToday(b.date);
+      if (isNaN(da)) return 1;
+      if (isNaN(db)) return -1;
+      return da - db;
+    })
     .slice(0, 5);
 
-  const openDiscovery = discovery.filter(
-    (d) => d.status !== "complete" && d.status !== "received",
+  const overdueSoon = deadlines.items.filter(
+    (d) => d.status === "overdue" || d.status === "due-soon",
   ).length;
 
-  // Merge docket + correspondence into one reverse-chron activity feed.
+  const openDiscovery = discovery.items.filter(
+    (d) => d.status !== "complete" && d.status !== "received",
+  );
+
+  // "Needs attention" = urgent deadlines + discovery awaiting action.
+  const attention: { id: string; title: string; detail: string; accent: Accent; link: string }[] = [
+    ...deadlines.items
+      .filter((d) => d.status === "overdue" || d.status === "due-soon")
+      .map((d) => ({
+        id: "dl-" + d.id,
+        title: d.description,
+        detail: `${d.type === "US" ? "Us" : d.type} · ${relativeDue(d.date) || fmtDay(d.date)}`,
+        accent: (d.status === "overdue" ? "rose" : "amber") as Accent,
+        link: "/deadlines",
+      })),
+    ...openDiscovery
+      .filter((d) => d.status === "to-draft" || d.status === "to-serve" || d.status === "responses-due")
+      .map((d) => ({
+        id: "disc-" + d.id,
+        title: d.name,
+        detail: `${d.type} · ${d.status.replace("-", " ")}`,
+        accent: (d.status === "responses-due" ? "rose" : "amber") as Accent,
+        link: "/discovery",
+      })),
+  ];
+
   const activity = [
-    ...docket.map((d) => ({
-      id: d.id,
+    ...docket.items.map((d) => ({
+      id: "dk-" + d.id,
       date: d.date,
-      label: `${d.type} filed`,
-      detail: `${d.summary} — ${d.filedBy}`,
+      label: d.name,
+      detail: [d.filingNumber, d.party].filter(Boolean).join(" · "),
       accent: "blue" as Accent,
       kind: "Docket",
     })),
-    ...correspondence.map((c) => ({
-      id: c.id,
+    ...correspondence.items.map((c) => ({
+      id: "co-" + c.id,
       date: c.date,
-      label: c.subject,
-      detail: `${c.from} → ${c.to}`,
-      accent: (c.accent ?? "teal") as Accent,
-      kind: c.channel,
+      label: `${c.from} → ${c.to}`,
+      detail: c.summary,
+      accent: "teal" as Accent,
+      kind: c.type,
     })),
   ]
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .slice(0, 7);
 
+  if (!ready) {
+    return (
+      <>
+        <Header title="Dashboard" greeting />
+      </>
+    );
+  }
+
+  if (totalEntries === 0) {
+    return (
+      <>
+        <Header title="Dashboard" greeting />
+        <EmptyState
+          title="Your workspace is empty"
+          hint="This is real, private data stored in your browser. Start by setting up your matter, then add deadlines, discovery, contacts, and correspondence."
+        />
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+          {[
+            ["Set up matter", "/case"],
+            ["Add a deadline", "/deadlines"],
+            ["Add discovery", "/discovery"],
+            ["Add a contact", "/contacts"],
+            ["Log correspondence", "/correspondence"],
+            ["Add a filing", "/court"],
+          ].map(([label, href]) => (
+            <Link key={href} href={href} className="card-2 p-4 text-[13px] font-medium hover:bg-[var(--surface-3)] transition-colors">
+              + {label}
+            </Link>
+          ))}
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <Header title="Dashboard" greeting />
 
-      {/* stat strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <Stat label="Open Tasks" value={String(openTasks.length)} accent="blue" />
-        <Stat label="Critical" value={String(criticalCount)} accent="rose" />
-        <Stat label="Open Discovery" value={String(openDiscovery)} accent="amber" />
+        <Stat label="Open Deadlines" value={String(openDeadlines.length)} accent="blue" />
+        <Stat label="Urgent" value={String(overdueSoon)} accent="rose" />
+        <Stat label="Open Discovery" value={String(openDiscovery.length)} accent="amber" />
         <Stat
           label="Next Deadline"
-          value={upcoming[0] ? relativeDue(upcoming[0].date) : "—"}
+          value={upcoming[0] ? relativeDue(upcoming[0].date) || fmtDay(upcoming[0].date) : "—"}
           accent="teal"
         />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5">
-        {/* Needs you next */}
         <div className="lg:col-span-2">
           <Card>
-            <SectionHeader
-              title="Needs You Next"
-              sub={`${criticalCount} critical · ${openTasks.length} open action items`}
-            />
-            <div className="flex flex-col">
-              {openTasks.map((t) => (
-                <Link
-                  key={t.id}
-                  href={t.link ?? "#"}
-                  className={`accent-bar bar-${priorityAccent[t.priority]} pl-4 py-3 border-b hairline last:border-0 hover:bg-[var(--surface-2)] rounded-md transition-colors`}
-                >
-                  <div className="flex items-start justify-between gap-3">
+            <SectionHeader title="Needs You Next" sub="Urgent deadlines and pending discovery" />
+            {attention.length === 0 ? (
+              <p className="text-[13px] text-[var(--faint)] py-4">
+                Nothing urgent right now. 🎉
+              </p>
+            ) : (
+              <div className="flex flex-col">
+                {attention.map((t) => (
+                  <Link
+                    key={t.id}
+                    href={t.link}
+                    className={`accent-bar bar-${t.accent} pl-4 py-3 border-b hairline last:border-0 hover:bg-[var(--surface-2)] rounded-md transition-colors flex items-center gap-2`}
+                  >
+                    <Dot accent={t.accent} />
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Dot accent={priorityAccent[t.priority]} />
-                        <span className="text-[14px] font-medium">{t.title}</span>
-                      </div>
-                      <p className="text-[12.5px] text-[var(--muted)] mt-1 leading-snug">
-                        {t.detail}
-                      </p>
+                      <div className="text-[14px] font-medium">{t.title}</div>
+                      <div className="text-[12px] text-[var(--muted)] capitalize">{t.detail}</div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <Pill accent={priorityAccent[t.priority]}>{t.priority}</Pill>
-                      {t.due && (
-                        <div className="text-[11px] text-[var(--faint)] mt-1.5">
-                          {relativeDue(t.due)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </Card>
         </div>
 
-        {/* Upcoming deadlines timeline */}
         <div>
           <Card>
             <SectionHeader title="Upcoming Deadlines" />
-            <div className="flex flex-col gap-3">
-              {upcoming.map((d) => {
-                const n = daysFromToday(d.date);
-                const accent: Accent =
-                  d.status === "overdue" || n < 0 ? "rose" : n <= 7 ? "amber" : "teal";
-                return (
-                  <div key={d.id} className="flex gap-3">
-                    <div className="flex flex-col items-center pt-1">
-                      <Dot accent={accent} />
-                      <div className="flex-1 w-px bg-[var(--border)] mt-1" />
-                    </div>
-                    <div className="pb-1">
-                      <div className="text-[12px] text-[var(--muted)]">{fmtDay(d.date)}</div>
-                      <div className="text-[13.5px] font-medium leading-snug">{d.title}</div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="tag">{d.owner}</span>
-                        <span
-                          className={`text-[11px] ${accent === "rose" ? "text-rose" : "text-[var(--faint)]"}`}
-                        >
-                          {relativeDue(d.date)}
-                        </span>
+            {upcoming.length === 0 ? (
+              <p className="text-[13px] text-[var(--faint)] py-4">No upcoming deadlines.</p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {upcoming.map((d) => {
+                  const n = daysFromToday(d.date);
+                  const accent: Accent =
+                    d.status === "overdue" || (!isNaN(n) && n < 0) ? "rose" : !isNaN(n) && n <= 7 ? "amber" : "teal";
+                  return (
+                    <div key={d.id} className="flex gap-3">
+                      <div className="flex flex-col items-center pt-1">
+                        <Dot accent={accent} />
+                        <div className="flex-1 w-px bg-[var(--border)] mt-1" />
+                      </div>
+                      <div className="pb-1">
+                        <div className="text-[12px] text-[var(--muted)]">{fmtDay(d.date)}</div>
+                        <div className="text-[13.5px] font-medium leading-snug">{d.description}</div>
+                        {relativeDue(d.date) && (
+                          <div className="text-[11px] text-[var(--faint)] mt-0.5">
+                            {relativeDue(d.date)}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
             <Link
               href="/deadlines"
               className="block text-center text-[12px] text-[var(--blue)] mt-3 hover:underline"
@@ -147,30 +209,32 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Activity feed */}
       <div className="mt-5">
         <Card>
           <SectionHeader title="What's Happened" sub="Recent docket filings & correspondence" />
-          <div className="flex flex-col">
-            {activity.map((a) => (
-              <div
-                key={a.kind + a.id}
-                className="flex items-start gap-3 py-2.5 border-b hairline last:border-0"
-              >
-                <span className="mt-1.5">
-                  <Dot accent={a.accent} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[13.5px] font-medium">{a.label}</span>
-                    <span className="tag">{a.kind}</span>
+          {activity.length === 0 ? (
+            <p className="text-[13px] text-[var(--faint)] py-4">No activity logged yet.</p>
+          ) : (
+            <div className="flex flex-col">
+              {activity.map((a) => (
+                <div key={a.id} className="flex items-start gap-3 py-2.5 border-b hairline last:border-0">
+                  <span className="mt-1.5">
+                    <Dot accent={a.accent} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[13.5px] font-medium">{a.label}</span>
+                      <span className="tag">{a.kind}</span>
+                    </div>
+                    {a.detail && (
+                      <p className="text-[12.5px] text-[var(--muted)] leading-snug">{a.detail}</p>
+                    )}
                   </div>
-                  <p className="text-[12.5px] text-[var(--muted)] leading-snug">{a.detail}</p>
+                  <span className="text-[11px] text-[var(--faint)] shrink-0">{fmtDay(a.date)}</span>
                 </div>
-                <span className="text-[11px] text-[var(--faint)] shrink-0">{fmtDay(a.date)}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
     </>

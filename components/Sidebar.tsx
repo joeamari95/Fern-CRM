@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { activeCase } from "@/lib/data/case";
+import { useLocalObject } from "@/lib/store/local";
+import type { CaseProfile } from "@/lib/types";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: "◆" },
@@ -17,6 +18,8 @@ const NAV = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { value: c, ready } = useLocalObject<CaseProfile>("case");
+
   return (
     <aside className="w-[248px] shrink-0 h-screen sticky top-0 hidden md:flex flex-col border-r hairline px-3 py-5">
       <Link href="/" className="flex items-center gap-2.5 px-2 mb-6">
@@ -46,8 +49,20 @@ export default function Sidebar() {
 
       <div className="mt-auto card-2 p-3">
         <div className="tag mb-2">Active Matter</div>
-        <div className="text-[13px] font-medium leading-snug">{activeCase.shortName}</div>
-        <div className="text-[11px] text-[var(--faint)] mt-1">Index {activeCase.index}</div>
+        {ready && c ? (
+          <>
+            <div className="text-[13px] font-medium leading-snug">
+              {c.caption || "Untitled matter"}
+            </div>
+            {c.index && (
+              <div className="text-[11px] text-[var(--faint)] mt-1">Index {c.index}</div>
+            )}
+          </>
+        ) : (
+          <div className="text-[12px] text-[var(--faint)] leading-snug">
+            {ready ? "No matter set up yet" : "…"}
+          </div>
+        )}
       </div>
     </aside>
   );

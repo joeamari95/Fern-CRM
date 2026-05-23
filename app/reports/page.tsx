@@ -1,72 +1,103 @@
+"use client";
+
+import { useState } from "react";
 import Header from "@/components/Header";
-import { Card, SectionHeader, Pill, Tag } from "@/components/ui";
-import { reports } from "@/lib/data/reports";
+import { Card, SectionHeader, Pill } from "@/components/ui";
+import {
+  Modal,
+  EntryForm,
+  RowActions,
+  AddButton,
+  EmptyState,
+  type Field,
+} from "@/components/forms";
+import { useCollection, newId } from "@/lib/store/local";
 import { fmtDate } from "@/lib/format";
+import type { ReportEntry } from "@/lib/types";
+
+const FIELDS: Field[] = [
+  { name: "label", label: "Report Label", kind: "text", required: true, placeholder: "e.g. Supplemental Report No. 1" },
+  { name: "date", label: "Date", kind: "date", required: true },
+  {
+    name: "status",
+    label: "Status",
+    kind: "select",
+    options: [
+      { value: "current", label: "Current" },
+      { value: "superseded", label: "Superseded" },
+    ],
+  },
+  { name: "body", label: "Report Body", kind: "textarea", placeholder: "Status, liability, damages, next steps…" },
+];
 
 export default function ReportsPage() {
-  const sorted = [...reports].sort((a, b) => (a.date < b.date ? 1 : -1));
-  const current = sorted.find((r) => r.status === "current") ?? sorted[0];
-  const history = sorted.filter((r) => r.id !== current.id);
+  const { items, add, update, remove, ready } = useCollection<ReportEntry>("reports");
+  const [editing, setEditing] = useState<ReportEntry | "new" | null>(null);
+
+  const sorted = [...items].sort((a, b) => (a.date < b.date ? 1 : -1));
+
+  function save(v: Record<string, string>) {
+    if (editing === "new") add({ id: newId(), ...(v as unknown as Omit<ReportEntry, "id">) });
+    else if (editing) update(editing.id, v as Partial<ReportEntry>);
+    setEditing(null);
+  }
 
   return (
     <>
       <Header title="Reports" />
-      <p className="text-[13px] text-[var(--muted)] -mt-3 mb-5">
-        Status reports to the client/carrier. The latest supersedes prior versions; new developments
-        roll into the next supplemental report.
-      </p>
+      <div className="flex items-center justify-between -mt-3 mb-5 gap-3">
+        <p className="text-[13px] text-[var(--muted)]">
+          Status reports to the client / carrier. Mark the latest “Current”; older ones “Superseded”.
+        </p>
+        <AddButton onClick={() => setEditing("new")} label="Add report" />
+      </div>
 
-      <Card className="mb-5">
-        <SectionHeader
-          title={current.label}
-          sub={`Current · ${fmtDate(current.date)}`}
-          right={<Pill accent="green">Current</Pill>}
+      {!ready ? null : sorted.length === 0 ? (
+        <EmptyState
+          title="No reports yet"
+          hint="Add an initial report, then supplemental reports as the matter develops."
+          onAdd={() => setEditing("new")}
+          addLabel="Add your first report"
         />
+      ) : (
         <div className="flex flex-col gap-4">
-          {current.sections.map((s) => (
-            <div key={s.heading}>
-              <div className="text-[12px] uppercase tracking-wide text-[var(--blue)] mb-1">
-                {s.heading}
+          {sorted.map((r) => (
+            <Card key={r.id}>
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div>
+                  <span className="text-[15px] font-semibold">{r.label}</span>
+                  <span className="text-[12px] text-[var(--faint)] ml-2">{fmtDate(r.date)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Pill accent={r.status === "current" ? "green" : "muted"}>
+                    {r.status === "current" ? "Current" : "Superseded"}
+                  </Pill>
+                  <RowActions onEdit={() => setEditing(r)} onDelete={() => remove(r.id)} />
+                </div>
               </div>
-              <p className="text-[13.5px] leading-relaxed text-[var(--muted)]">{s.body}</p>
-            </div>
+              {r.body && (
+                <p className="text-[13.5px] leading-relaxed text-[var(--muted)] whitespace-pre-wrap">
+                  {r.body}
+                </p>
+              )}
+            </Card>
           ))}
         </div>
-      </Card>
+      )}
 
-      <div
-        className="card-2 p-4 mb-5 flex items-center gap-2"
-        style={{ borderColor: "rgba(251,191,36,0.3)" }}
-      >
-        <span className="dot dot-amber" />
-        <span className="text-[12.5px] text-[var(--muted)]">
-          New filings or correspondence will be summarized into the next supplemental report.
-        </span>
-        <span className="ml-auto"><Tag>Add update — soon</Tag></span>
-      </div>
-
-      <SectionHeader title="Report History" sub={`${history.length} prior report(s)`} />
-      <div className="flex flex-col gap-3">
-        {history.map((r) => (
-          <Card key={r.id}>
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <div>
-                <span className="text-[14px] font-medium">{r.label}</span>
-                <span className="text-[12px] text-[var(--faint)] ml-2">{fmtDate(r.date)}</span>
-              </div>
-              <Pill accent="muted">Superseded</Pill>
-            </div>
-            <div className="flex flex-col gap-2">
-              {r.sections.map((s) => (
-                <p key={s.heading} className="text-[12.5px] text-[var(--muted)] leading-snug">
-                  <span className="text-[var(--fg)] font-medium">{s.heading}: </span>
-                  {s.body}
-                </p>
-              ))}
-            </div>
-          </Card>
-        ))}
-      </div>
+      {editing && (
+        <Modal
+          title={editing === "new" ? "Add report" : "Edit report"}
+          onClose={() => setEditing(null)}
+        >
+          <EntryForm
+            fields={FIELDS}
+            initial={editing === "new" ? undefined : (editing as unknown as Record<string, string>)}
+            onSubmit={save}
+            onCancel={() => setEditing(null)}
+          />
+        </Modal>
+      )}
     </>
   );
 }
