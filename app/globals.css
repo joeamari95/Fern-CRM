@@ -422,7 +422,6 @@ select.input { appearance: none; cursor: pointer; }
   right: 420px;
   z-index: 40;
   background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(2px);
   opacity: 0;
   transition: opacity 0.28s ease;
 }
@@ -436,6 +435,7 @@ select.input { appearance: none; cursor: pointer; }
   width: 420px;
   max-width: 100vw;
   z-index: 70;
+  pointer-events: auto;
   display: flex;
   flex-direction: column;
   background: var(--bg-2);
@@ -446,6 +446,8 @@ select.input { appearance: none; cursor: pointer; }
   will-change: transform;
 }
 .sb-panel.open { transform: translateX(0); }
+/* When closed, don't let the off-screen panel intercept anything. */
+.sb-panel:not(.open) { pointer-events: none; }
 
 /* ---- notes hover popover (case list) ---- */
 .notes-cell { position: relative; }
