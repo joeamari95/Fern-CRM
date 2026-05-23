@@ -4,6 +4,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import { Card, SectionHeader, Pill, Dot } from "@/components/ui";
 import { EmptyState } from "@/components/forms";
+import DemoControls from "@/components/DemoControls";
 import { useCollection } from "@/lib/store/local";
 import { fmtDay, relativeDue, daysFromToday } from "@/lib/format";
 import type {
@@ -121,6 +122,7 @@ export default function Dashboard() {
             </Link>
           ))}
         </div>
+        <DemoControls hasData={false} />
       </>
     );
   }
@@ -237,6 +239,8 @@ export default function Dashboard() {
           )}
         </Card>
       </div>
+
+      <DemoControls hasData={true} />
     </>
   );
 }

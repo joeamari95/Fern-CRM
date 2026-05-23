@@ -25,6 +25,7 @@ export type DiscoveryItem = {
   direction: DiscoveryDirection;
   dueDate: string;
   status: DiscoveryStatus;
+  notes: string;
 };
 
 export type CorrespondenceType = "Email" | "Letter" | "Call" | "Court";

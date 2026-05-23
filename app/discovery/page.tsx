@@ -54,6 +54,7 @@ const FIELDS: Field[] = [
       { value: "complete", label: "Complete" },
     ],
   },
+  { name: "notes", label: "Notes", kind: "textarea", placeholder: "Notes on this item…" },
 ];
 
 const statusAccent: Record<DiscoveryStatus, Accent> = {
@@ -106,6 +107,9 @@ export default function DiscoveryPage() {
                     <RowActions onEdit={() => setEditing(d)} onDelete={() => remove(d.id)} />
                   </div>
                 </div>
+                {d.notes && (
+                  <p className="text-[12px] text-[var(--muted)] mt-1.5 leading-snug">{d.notes}</p>
+                )}
                 <div className="flex items-center gap-2 mt-2">
                   {d.type && <Tag>{d.type}</Tag>}
                   {d.dueDate && (

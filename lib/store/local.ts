@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-const PREFIX = "fern:";
+export const PREFIX = "fern:";
 
 export function newId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
