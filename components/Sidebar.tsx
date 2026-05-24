@@ -10,7 +10,7 @@ const GLOBAL_NAV = [
   { href: "/", label: "Associate Dashboard", icon: "◆" },
   { href: "/cases", label: "Case List", icon: "▦" },
   { href: "/email-review", label: "Email Review", icon: "✉" },
-  { href: "/time-entry", label: "Time Entry", icon: "◴" },
+  { href: "/time-entry", label: "Billable Hours", icon: "◴" },
 ];
 
 function caseNav(id: string) {

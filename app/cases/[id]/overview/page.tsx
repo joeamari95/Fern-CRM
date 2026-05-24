@@ -11,6 +11,8 @@ import { STAGES, type Case } from "@/lib/types";
 const FIELDS: Field[] = [
   { name: "name", label: "Caption", kind: "text", required: true },
   { name: "index", label: "Index / Docket No.", kind: "text" },
+  { name: "clientNumber", label: "Client Number (iTimeKeep)", kind: "text" },
+  { name: "matterNumber", label: "Matter Number (iTimeKeep)", kind: "text" },
   { name: "court", label: "Court", kind: "text" },
   { name: "county", label: "County", kind: "text" },
   { name: "justice", label: "Assigned Justice", kind: "text" },
@@ -63,6 +65,8 @@ export default function CaseOverviewPage() {
     ["Opposing Counsel", c.opposingCounsel],
     ["Supervising Partner", c.supervisingPartner],
     ["My Role", c.role],
+    ["Client No.", c.clientNumber || ""],
+    ["Matter No.", c.matterNumber || ""],
   ];
 
   return (

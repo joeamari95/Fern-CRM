@@ -178,6 +178,33 @@ body {
 .icon-btn:hover { background: var(--surface-3); color: var(--fg); }
 .icon-btn-danger:hover { color: var(--rose); border-color: rgba(244, 63, 94, 0.4); }
 
+/* ---- audit defense slide-in ---- */
+.audit-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.5);
+}
+.audit-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 460px;
+  max-width: 100vw;
+  z-index: 81;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-2);
+  border-left: 1px solid var(--border-strong);
+  box-shadow: -16px 0 48px rgba(0, 0, 0, 0.55);
+  animation: audit-in 0.3s cubic-bezier(0.32, 1.2, 0.5, 1);
+}
+@keyframes audit-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
 /* ---- sounding board tabs ---- */
 .sb-tabs {
   display: flex;

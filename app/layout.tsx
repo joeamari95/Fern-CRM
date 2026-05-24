@@ -4,6 +4,7 @@ import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import FloatingSoundingBoard from "@/components/FloatingSoundingBoard";
 import StickyNotes from "@/components/StickyNotes";
+import ActivityLogger from "@/components/ActivityLogger";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
         <FloatingSoundingBoard />
         <StickyNotes />
+        <ActivityLogger />
       </body>
     </html>
   );

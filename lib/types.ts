@@ -38,6 +38,19 @@ export type Case = {
   lastTouched: string; // ISO date
   notes: string[]; // up to 3 short bullets
   summary: string;
+  clientNumber?: string; // iTimeKeep client number (case settings)
+  matterNumber?: string; // iTimeKeep matter number (case settings)
+};
+
+export type TimeEntry = {
+  id: string;
+  date: string; // yyyy-mm-dd
+  caseId: string;
+  taskCode: string; // Tier 1 label
+  subCode: string; // Tier 2 label
+  description: string; // billing narrative
+  hours: number;
+  savedAt: string; // ISO datetime
 };
 
 export type DeadlineType = "US" | "Joint" | "Court";
