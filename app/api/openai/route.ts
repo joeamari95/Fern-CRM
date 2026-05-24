@@ -25,7 +25,7 @@ Return ONLY structured JSON with fields: extracted_text, document_type, document
 const NARRATIVE_SYSTEM = `You are a legal billing assistant. Turn the attorney's terse time-entry description into a single concise, professional billing narrative in past tense (one short paragraph, no bullet points, no first person). Do not invent work that was not described. Return only the narrative text.`;
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
   if (!apiKey) {
     return Response.json({ error: MISSING_KEY_MSG, missingKey: true }, { status: 503 });
   }
