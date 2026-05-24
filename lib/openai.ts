@@ -21,12 +21,13 @@ async function post<T>(payload: Record<string, unknown>): Promise<T> {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     if (res.status === 503 || data.missingKey) {
+      // Use the server's message so it names the right key (OpenAI vs Perplexity).
       throw new OpenAIError(
-        "OpenAI features require an API key. Add OPENAI_API_KEY to your environment variables.",
+        data.error || "This feature requires an API key. Add it to your environment variables.",
         true,
       );
     }
-    console.error("[openai] request failed", res.status, data);
+    console.error("[ai] request failed", res.status, data);
     throw new OpenAIError("Could not complete request. Please try again.");
   }
   return data as T;
